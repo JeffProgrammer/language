@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum Keyword {
     Int,
+    Float,
     Let
 }
 
@@ -10,9 +11,11 @@ pub enum Token {
     Minus,
     Multiply,
     Divide,
+    Modulus,
     Equal,
     Colon,
     Keyword(Keyword),
     Identifier(String),
-    Integer(i32)
+    Integer(i32),
+    Float(f32)
 }

@@ -16,25 +16,27 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
             '-' => Token::Minus,
             '*' => Token::Multiply,
             '/' => Token::Divide,
+            '%' => Token::Modulus,
             '=' => Token::Equal,
             ':' => Token::Colon,
             '0'..='9' => {
                 let mut string_num = String::with_capacity(32);
                 string_num.push(ch);
 
-                while let Some((_num_pos, num_ch)) = chars.peek() {
-                    match *num_ch {
-                        '0'..='9' | '.' => {
-                            string_num.push(*num_ch);
-                            chars.next();
-                        },
-                        _ => break
-                    }
+                for (_, num_char) in chars.take_while_ref(|(_, it)| it.is_numeric() || *it == '.') {
+                    string_num.push(num_char);
                 }
 
-                match string_num.parse::<i32>() {
-                    Ok(integer) => Token::Integer(integer),
-                    Err(_err) => return Err(format!("Unable to parse integer [{}]", string_num))
+                if string_num.contains('.') {
+                    match string_num.parse::<f32>() {
+                        Ok(flt) => Token::Float(flt),
+                        Err(_err) => return Err(format!("Unable to parse float [{}]", string_num))
+                    }
+                } else {
+                    match string_num.parse::<i32>() {
+                        Ok(integer) => Token::Integer(integer),
+                        Err(_err) => return Err(format!("Unable to parse integer [{}]", string_num)) // Is this even possible to hit?
+                    }
                 }
             },
             'a'..='z' => {
@@ -59,6 +61,7 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
 fn match_identifier(string: String) -> Token {
     return match string.as_str() {
         "int" => Token::Keyword(Keyword::Int),
+        "float" => Token::Keyword(Keyword::Float),
         "let" => Token::Keyword(Keyword::Let),
         _ => Token::Identifier(string)
     }
