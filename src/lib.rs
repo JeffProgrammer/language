@@ -1,25 +1,10 @@
 use itertools::Itertools;
 
-#[derive(Debug, PartialEq)]
-pub enum Keyword {
-    Int,
-    Let
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Token {
-    Plus,
-    Minus,
-    Multiply,
-    Divide,
-    Equal,
-    Colon,
-    Keyword(Keyword),
-    Identifier(String),
-    Integer(i32)
-}
+mod tests;
+pub mod types;
+use types::*;
  
-pub fn scanner(code: &str) -> Result<Vec<Token>, &'static str> {
+pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut chars = code.char_indices().peekable();
 
@@ -39,7 +24,7 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, &'static str> {
 
                 while let Some((_num_pos, num_ch)) = chars.peek() {
                     match *num_ch {
-                        '0'..='9' => {
+                        '0'..='9' | '.' => {
                             string_num.push(*num_ch);
                             chars.next();
                         },
@@ -49,7 +34,7 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, &'static str> {
 
                 match string_num.parse::<i32>() {
                     Ok(integer) => Token::Integer(integer),
-                    Err(_err) => return Err("Unable to parse integer")
+                    Err(_err) => return Err(format!("Unable to parse integer [{}]", string_num))
                 }
             },
             'a'..='z' => {
@@ -62,7 +47,7 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, &'static str> {
 
                 match_identifier(string)
             }
-            _ => return Err("Invalid Character Found")
+            _ => return Err("Invalid Character Found".to_string())
         };
 
         tokens.push(token);
@@ -77,89 +62,4 @@ fn match_identifier(string: String) -> Token {
         "let" => Token::Keyword(Keyword::Let),
         _ => Token::Identifier(string)
     }
-}
-
-#[test]
-fn test_scan_integer() {
-    let tokens: Vec<Token> = scanner("12").unwrap();
-    let expected_tokens: Vec<Token> = vec![Token::Integer(12)];
-
-    assert_eq!(tokens, expected_tokens);
-}
-
-#[test]
-fn test_scan_integer_plus_integer() {
-    let tokens: Vec<Token> = scanner("12+13").unwrap();
-    let expected_tokens: Vec<Token> = vec![Token::Integer(12), Token::Plus, Token::Integer(13)];
-
-    assert_eq!(tokens, expected_tokens);
-}
-
-#[test]
-fn test_scan_integer_minus_integer() {
-    let tokens: Vec<Token> = scanner("12-13").unwrap();
-    let expected_tokens: Vec<Token> = vec![Token::Integer(12), Token::Minus, Token::Integer(13)];
-
-    assert_eq!(tokens, expected_tokens);
-}
-
-#[test]
-fn test_scan_integer_multiply_integer() {
-    let tokens: Vec<Token> = scanner("12*13").unwrap();
-    let expected_tokens: Vec<Token> = vec![Token::Integer(12), Token::Multiply, Token::Integer(13)];
-
-    assert_eq!(tokens, expected_tokens);
-}
-
-#[test]
-fn test_scan_integer_divide_integer() {
-    let tokens: Vec<Token> = scanner("12/13").unwrap();
-    let expected_tokens: Vec<Token> = vec![Token::Integer(12), Token::Divide, Token::Integer(13)];
-
-    assert_eq!(tokens, expected_tokens);
-}
-
-#[test]
-fn test_let_assignment() {
-    let code = "let x: int = 11;";
-
-    let tokens: Vec<Token> = scanner(code).unwrap();
-
-    let expected_tokens: Vec<Token> = vec![
-        Token::Keyword(Keyword::Let), 
-        Token::Identifier("x".to_string()),
-        Token::Colon,
-        Token::Keyword(Keyword::Int),
-        Token::Equal, 
-        Token::Integer(11)
-    ];
-
-    assert_eq!(tokens, expected_tokens);
-}
-
-#[test]
-fn test_multiple_let_statements() {
-    let code = "
-        let x: int = 1;
-        let y: int = 2;
-    ";
-
-    let tokens = scanner(code).unwrap();
-
-    let expected_tokens = vec![
-        Token::Keyword(Keyword::Let), 
-        Token::Identifier("x".to_string()),
-        Token::Colon,
-        Token::Keyword(Keyword::Int),
-        Token::Equal, 
-        Token::Integer(1),
-        Token::Keyword(Keyword::Let), 
-        Token::Identifier("y".to_string()),
-        Token::Colon,
-        Token::Keyword(Keyword::Int),
-        Token::Equal, 
-        Token::Integer(2)
-    ];
-
-    assert_eq!(tokens, expected_tokens);
 }
