@@ -7,18 +7,23 @@ use types::*;
 pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
     let mut tokens: Vec<Token> = Vec::new();
     let mut chars = code.char_indices().peekable();
+    let mut line_number = 1;
 
     while let Some((_, ch)) = chars.next() {
 
         let token = match ch {
-            ';' | ' ' | '\n' | '\r' => continue,
-            '+' => Token::Plus,
-            '-' => Token::Minus,
-            '*' => Token::Multiply,
-            '/' => Token::Divide,
-            '%' => Token::Modulus,
-            '=' => Token::Equal,
-            ':' => Token::Colon,
+            ';' | ' ' | '\r' | '\t' => continue,
+            '\n' => {
+                line_number += 1;
+                continue;
+            }
+            '+' => Token { line_number: line_number, token: TokenType::Plus },
+            '-' => Token { line_number: line_number, token: TokenType::Minus },
+            '*' => Token { line_number: line_number, token: TokenType::Multiply },
+            '/' => Token { line_number: line_number, token: TokenType::Divide },
+            '%' => Token { line_number: line_number, token: TokenType::Modulus },
+            '=' => Token { line_number: line_number, token: TokenType::Equal },
+            ':' => Token { line_number: line_number, token: TokenType::Colon },
             '0'..='9' => {
                 let mut string_num = String::with_capacity(32);
                 string_num.push(ch);
@@ -27,17 +32,19 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
                     string_num.push(num_char);
                 }
 
-                if string_num.contains('.') {
+                let token_type = if string_num.contains('.') {
                     match string_num.parse::<f32>() {
-                        Ok(flt) => Token::Float(flt),
+                        Ok(flt) => TokenType::Float(flt),
                         Err(_err) => return Err(format!("Unable to parse float [{}]", string_num))
                     }
                 } else {
                     match string_num.parse::<i32>() {
-                        Ok(integer) => Token::Integer(integer),
+                        Ok(integer) => TokenType::Integer(integer),
                         Err(_err) => return Err(format!("Unable to parse integer [{}]", string_num)) // Is this even possible to hit?
                     }
-                }
+                };
+
+                Token { line_number: line_number, token: token_type }
             },
             'a'..='z' => {
                 let mut string = String::with_capacity(32);
@@ -47,7 +54,7 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
                     string.push(identifier_chr);
                 }
 
-                match_identifier(string)
+                Token { line_number: line_number, token: match_identifier(string) }
             }
             _ => return Err("Invalid Character Found".to_string())
         };
@@ -58,11 +65,11 @@ pub fn scanner(code: &str) -> Result<Vec<Token>, String> {
     return Ok(tokens);
 }
 
-fn match_identifier(string: String) -> Token {
+fn match_identifier(string: String) -> TokenType {
     return match string.as_str() {
-        "int" => Token::Keyword(Keyword::Int),
-        "float" => Token::Keyword(Keyword::Float),
-        "let" => Token::Keyword(Keyword::Let),
-        _ => Token::Identifier(string)
-    }
+        "int" => TokenType::Keyword(Keyword::Int),
+        "float" => TokenType::Keyword(Keyword::Float),
+        "let" => TokenType::Keyword(Keyword::Let),
+        _ => TokenType::Identifier(string)
+    };
 }

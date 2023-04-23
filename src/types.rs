@@ -6,7 +6,7 @@ pub enum Keyword {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Token {
+pub enum TokenType {
     Plus,
     Minus,
     Multiply,
@@ -18,4 +18,10 @@ pub enum Token {
     Identifier(String),
     Integer(i32),
     Float(f32)
+}
+
+#[derive(Debug, PartialEq)]
+pub struct Token {
+    pub line_number: i32,
+    pub token: TokenType
 }
