@@ -1,3 +1,5 @@
+use std::{iter::Peekable, slice::Iter};
+
 use itertools::Itertools;
 
 mod tests;
@@ -72,4 +74,61 @@ fn match_identifier(string: String) -> TokenType {
         "let" => TokenType::Keyword(Keyword::Let),
         _ => TokenType::Identifier(string)
     };
+}
+
+pub fn parse(tokens: Vec<Token>) -> Result<Vec<TreeNode>, String> {
+    let mut vec = vec![];
+
+    let mut token_iterator = tokens.iter_mut().peekable();
+
+    while token_iterator.peek() != None {
+        match statement(&token_iterator) {
+            Ok(node) => vec.push(node),
+            Err(err) => return Err(err)
+        }
+    }
+
+    return Ok(vec);
+}
+
+fn statement(token_iterator: &mut Peekable<Iter<Token>>) -> Result<TreeNode, String> {
+    let mut tree = TreeNode { leaf: NodeType::StatementOp, left_branch: None, right_branch: None };
+
+    let token_val = token_iterator.next().unwrap();
+
+    match token_val.token {
+        TokenType::Keyword(Keyword::Let) => {
+            match variable_assignment(token_iterator) {
+                Ok(branch) => tree.left_branch = Some(branch),
+                Err(err) => return Err(err)
+            };
+        }
+        _ => {}
+    }
+
+    return Ok(tree);
+}
+
+fn variable_assignment(token_iterator: &mut Peekable<Iter<Token>>) -> Result<Box<TreeNode>, String> {
+    let identifier_token = token_iterator.next().unwrap();
+    
+    if let TokenType::Identifier(identifier) = identifier_token.token {
+        let type_token = match let tok = token_iterator.peek() {
+            None => None,
+            _ => find_type(tok.unwrap().token)
+        }
+
+
+        return Ok(Box::new(TreeNode { leaf: NodeType::VariableAssignment(identifier, type), left_branch: None, right_branch: None }));
+    }
+
+    return Err("".to_string());
+}
+
+fn find_type(token: TokenType) -> Option<VariableType> {
+    return match token {
+        TokenType::Keyword(Keyword::Int) => Some(VariableType::Int),
+        TokenType::Keyword(Keyword::Float) => Some(VariableType::Float),
+        _ => None
+    }
 }
