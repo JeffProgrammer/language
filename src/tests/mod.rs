@@ -1,1 +1,1 @@
-mod scanner;
+mod test_scanner;

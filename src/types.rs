@@ -1,11 +1,11 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Keyword {
     Int,
     Float,
-    Let
+    Let,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenType {
     Plus,
     Minus,
@@ -17,13 +17,13 @@ pub enum TokenType {
     Keyword(Keyword),
     Identifier(String),
     Integer(i32),
-    Float(f32)
+    Float(f32),
 }
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
     pub line_number: i32,
-    pub token: TokenType
+    pub token: TokenType,
 }
 
 #[derive(Debug, PartialEq)]
@@ -46,7 +46,7 @@ pub enum FloatOperation {
 #[derive(Debug, PartialEq)]
 pub enum VariableType {
     Int,
-    Float
+    Float,
 }
 
 #[derive(Debug, PartialEq)]
@@ -56,12 +56,12 @@ pub enum NodeType {
     LiteralInteger(i32),
     LiteralFloat(f32),
     IntOp(IntOperation),
-    FloatOp(FloatOperation)
+    FloatOp(FloatOperation),
 }
 
 #[derive(Debug, PartialEq)]
 pub struct TreeNode {
     pub leaf: NodeType,
     pub left_branch: Option<Box<TreeNode>>,
-    pub right_branch: Option<Box<TreeNode>>
+    pub right_branch: Option<Box<TreeNode>>,
 }
