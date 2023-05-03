@@ -7,10 +7,7 @@ pub fn parse(mut tokens: Vec<Token>) -> Result<Vec<TreeNode>, String> {
     let mut token_iterator = tokens.iter_mut().peekable();
 
     while token_iterator.peek_mut() != None {
-        match statement(&mut token_iterator) {
-            Ok(node) => vec.push(node),
-            Err(err) => return Err(err),
-        }
+        vec.push(statement(&mut token_iterator)?);
     }
 
     return Ok(vec);
@@ -27,10 +24,7 @@ fn statement(token_iterator: &mut Peekable<IterMut<Token>>) -> Result<TreeNode, 
 
     match token_val.token {
         TokenType::Keyword(Keyword::Let) => {
-            match variable_assignment(token_iterator) {
-                Ok(branch) => tree.left_branch = Some(branch),
-                Err(err) => return Err(err),
-            };
+            tree.left_branch = Some(variable_assignment(token_iterator)?);
         }
         _ => {}
     }
@@ -62,11 +56,7 @@ fn variable_assignment(
         }) = token_iterator.peek()
         {
             token_iterator.next();
-
-            assignment_expression = match parse_expression(token_iterator) {
-                Ok(expr) => Some(expr),
-                Err(err) => return Err(err),
-            }
+            assignment_expression = Some(parse_expression(token_iterator)?);
         }
 
         return Ok(Box::new(TreeNode {
