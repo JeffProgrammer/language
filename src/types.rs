@@ -50,18 +50,26 @@ pub enum VariableType {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum NodeType {
-    StatementOp,
-    VariableAssignment(String, Option<VariableType>),
-    LiteralInteger(i32),
-    LiteralFloat(f32),
-    IntOp(IntOperation),
-    FloatOp(FloatOperation),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct TreeNode {
-    pub leaf: NodeType,
-    pub left_branch: Option<Box<TreeNode>>,
-    pub right_branch: Option<Box<TreeNode>>,
+pub enum ASTNode {
+    VariableAssignment {
+        name: String,
+        var_type: Option<VariableType>,
+        expression: Option<Box<ASTNode>>,
+    },
+    LiteralInteger {
+        value: i32,
+    },
+    LiteralFloat {
+        value: f32,
+    },
+    IntOp {
+        op: IntOperation,
+        left: Box<ASTNode>,
+        right: Box<ASTNode>,
+    },
+    FloatOp {
+        op: FloatOperation,
+        left: Box<ASTNode>,
+        right: Box<ASTNode>,
+    },
 }
